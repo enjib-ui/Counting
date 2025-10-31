@@ -128,7 +128,8 @@ th { background:#007bff; color:white; }
           <th>Pembelian</th>
           <th>Jumlah</th>
           <th>Satuan</th>
-          <th>Nominal (Rp)</th>
+          <th>Harga/Unit (Rp)</th>
+          <th>Nominal Total (Rp)</th>
           <th>
             Tanggal
             <input type="date" id="filterStart" class="filter-input">
@@ -222,14 +223,16 @@ function renderTable(){
   filtered.forEach(item=>{
     total += item.amount;
     tbody.innerHTML += `
-      <tr>
-        <td>${item.description}</td>
-        <td>${item.quantity}</td>
-        <td>${item.unit}</td>
-        <td>Rp ${item.amount.toLocaleString()}</td>
-        <td>${item.date}</td>
-        <td><button class="delete-btn" onclick="hapus('${item.id}')">Hapus</button></td>
-      </tr>`;
+  <tr>
+    <td>${item.description}</td>
+    <td>${item.quantity}</td>
+    <td>${item.unit}</td>
+    <td>Rp ${item.pricePerUnit.toLocaleString()}</td>
+    <td>Rp ${item.amount.toLocaleString()}</td>
+    <td>${item.date}</td>
+    <td><button class="delete-btn" onclick="hapus('${item.id}')">Hapus</button></td>
+  </tr>`;
+    
   });
 
   totalBelanja.textContent = total.toLocaleString();
