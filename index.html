@@ -16,7 +16,6 @@ body {
   border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 h2 { text-align:center; margin-top:0; }
-
 .form-group { margin-bottom:12px; }
 label { font-size:14px; font-weight:600; display:block; margin-bottom:5px; }
 input, select {
@@ -54,7 +53,6 @@ th, td {
 }
 th { background:#007bff; color:white; }
 
-/* tombol hapus */
 .delete-btn {
   background:#dc3545; border:none; color:white; padding:6px 10px;
   border-radius:5px; cursor:pointer;
@@ -64,9 +62,15 @@ th { background:#007bff; color:white; }
 .total-box {
   margin-top:10px; font-size:16px; font-weight:bold; text-align:right;
 }
+.filter-input {
+  width:100%;
+  font-size:12px;
+  padding:3px;
+  margin-top:3px;
+}
 </style>
-
 </head>
+
 <body>
 
 <div class="container">
@@ -74,7 +78,7 @@ th { background:#007bff; color:white; }
 
   <div class="form-group">
     <label>Pembelian</label>
-    <input type="text" id="description" placeholder="Contoh: Beras" required>
+    <input type="text" id="description" placeholder="Contoh: Beras">
   </div>
 
   <div style="display:flex; gap:10px;">
@@ -98,12 +102,12 @@ th { background:#007bff; color:white; }
 
   <div class="form-group">
     <label>Harga per Unit (Rp)</label>
-    <input type="number" id="pricePerUnit" placeholder="Contoh: 5000" min="0">
+    <input type="number" id="pricePerUnit" placeholder="Contoh: 5000">
   </div>
 
   <div class="form-group">
     <label>Nominal Total (Rp)</label>
-    <input type="number" id="amount" placeholder="0" min="0">
+    <input type="number" id="amount" placeholder="0">
   </div>
 
   <div class="form-group">
@@ -115,11 +119,12 @@ th { background:#007bff; color:white; }
   <button id="toggleBtn">Tampilkan Data</button>
 </div>
 
-<!-- POPUP MODAL -->
+<!-- POPUP -->
 <div id="modal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
     <h3 style="text-align:center;margin:0;">Data Pembelian</h3>
+
     <table>
       <thead>
         <tr>
@@ -127,7 +132,11 @@ th { background:#007bff; color:white; }
           <th>Jumlah</th>
           <th>Satuan</th>
           <th>Nominal (Rp)</th>
-          <th>Tanggal</th>
+          <th>
+            Tanggal
+            <input type="date" id="filterStart" class="filter-input">
+            <input type="date" id="filterEnd" class="filter-input">
+          </th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -140,7 +149,7 @@ th { background:#007bff; color:white; }
   </div>
 </div>
 
-<!-- ⭐ FIREBASE -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
 <script>
@@ -160,16 +169,12 @@ const db = firebase.firestore();
 let data = [];
 
 // Auto hitung
-document.getElementById("pricePerUnit").addEventListener("input", autoHitung)
-document.getElementById("quantity").addEventListener("input", autoHitung)
-function autoHitung(){
-  const qty = parseFloat(quantity.value)||0;
-  const price = parseFloat(pricePerUnit.value)||0;
-  amount.value = qty * price;
-}
+pricePerUnit.addEventListener("input", autoHitung)
+quantity.addEventListener("input", autoHitung)
+function autoHitung(){ amount.value = (parseFloat(quantity.value)||0) * (parseFloat(pricePerUnit.value)||0); }
 
-// Simpan ke Firestore
-document.getElementById("saveBtn").onclick = async function(){
+// Simpan
+saveBtn.onclick = async ()=>{
   const item = {
     description: description.value.trim(),
     quantity: parseFloat(quantity.value),
@@ -179,35 +184,34 @@ document.getElementById("saveBtn").onclick = async function(){
     date: date.value || new Date().toISOString().split("T")[0],
     time: Date.now()
   };
-
-  if (!item.description || !item.quantity || !item.amount){
-    alert("Silakan isi semua data");
-    return;
-  }
-
+  if(!item.description || !item.amount){ alert("Isi data!"); return; }
   await db.collection("pembelian").add(item);
   resetForm();
 };
 
-// Tampilkan modal & load data
-document.getElementById("toggleBtn").onclick = function(){
-  loadData();
-  document.getElementById("modal").style.display = "flex";
-};
+// Show modal
+toggleBtn.onclick = ()=>{ loadData(); modal.style.display="flex"; };
 
-// Load data Firestore
+// Load + Filter
 async function loadData(){
-  const tbody = document.getElementById("tableBody");
+  const snapshot = await db.collection("pembelian").orderBy("time","desc").get();
+  data = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  renderTable();
+}
+
+function renderTable(){
+  const tbody = tableBody;
   tbody.innerHTML = "";
-  data = [];
   let total = 0;
 
-  const snapshot = await db.collection("pembelian").orderBy("time","desc").get();
-  snapshot.forEach(doc => {
-    data.push({ id: doc.id, ...doc.data() });
+  // filter
+  const start = filterStart.value;
+  const end = filterEnd.value;
+  const filtered = data.filter(x=>{
+    return (!start || x.date>=start) && (!end || x.date<=end);
   });
 
-  data.forEach(item => {
+  filtered.forEach(item=>{
     total += item.amount;
     tbody.innerHTML += `
       <tr>
@@ -217,33 +221,23 @@ async function loadData(){
         <td>Rp ${item.amount.toLocaleString()}</td>
         <td>${item.date}</td>
         <td><button class="delete-btn" onclick="hapus('${item.id}')">Hapus</button></td>
-      </tr>
-    `;
+      </tr>`;
   });
 
-  document.getElementById("totalBelanja").textContent = total.toLocaleString();
+  totalBelanja.textContent = total.toLocaleString();
 }
 
-// Hapus Data Firestore
-async function hapus(id){
-  if(confirm("Hapus data ini?")){
-    await db.collection("pembelian").doc(id).delete();
-    loadData();
-  }
-}
+// on change filter
+filterStart.onchange = renderTable;
+filterEnd.onchange = renderTable;
 
-function closeModal(){ document.getElementById("modal").style.display = "none"; }
+// Hapus
+async function hapus(id){ if(confirm("Hapus data?")){ await db.collection("pembelian").doc(id).delete(); loadData(); } }
 
-function resetForm(){
-  description.value="";
-  quantity.value=1;
-  pricePerUnit.value="";
-  amount.value="";
-  date.value="";
-  unit.value="pcs";
-}
+function closeModal(){ modal.style.display="none"; }
+
+function resetForm(){ description.value=""; quantity.value=1; pricePerUnit.value=""; amount.value=""; date.value=""; unit.value="pcs"; }
 </script>
 
 </body>
-  </html>
-  
+</html>
