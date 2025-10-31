@@ -140,27 +140,44 @@ th { background:#007bff; color:white; }
   </div>
 </div>
 
+<!-- ⭐ FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
 <script>
-let data = JSON.parse(localStorage.getItem("pembelian") || "[]");
+const firebaseConfig = {
+  apiKey: "AIzaSyBMh_kw-d_YPteiDEMoKhb9WNZHqVljgRs",
+  authDomain: "counting-8ba9d.firebaseapp.com",
+  projectId: "counting-8ba9d",
+  storageBucket: "counting-8ba9d.firebasestorage.app",
+  messagingSenderId: "1023489535017",
+  appId: "1:1023489535017:web:6083691f9e7cd367a50038"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
 
+<script>
+let data = [];
+
+// Auto hitung
 document.getElementById("pricePerUnit").addEventListener("input", autoHitung)
 document.getElementById("quantity").addEventListener("input", autoHitung)
-
 function autoHitung(){
   const qty = parseFloat(quantity.value)||0;
   const price = parseFloat(pricePerUnit.value)||0;
   amount.value = qty * price;
 }
 
-document.getElementById("saveBtn").onclick = function(){
+// Simpan ke Firestore
+document.getElementById("saveBtn").onclick = async function(){
   const item = {
-    id: Date.now(),
     description: description.value.trim(),
     quantity: parseFloat(quantity.value),
     unit: unit.value,
     pricePerUnit: parseFloat(pricePerUnit.value),
     amount: parseFloat(amount.value),
-    date: date.value || new Date().toISOString().split("T")[0]
+    date: date.value || new Date().toISOString().split("T")[0],
+    time: Date.now()
   };
 
   if (!item.description || !item.quantity || !item.amount){
@@ -168,24 +185,30 @@ document.getElementById("saveBtn").onclick = function(){
     return;
   }
 
-  data.push(item);
-  localStorage.setItem("pembelian", JSON.stringify(data));
+  await db.collection("pembelian").add(item);
   resetForm();
 };
 
+// Tampilkan modal & load data
 document.getElementById("toggleBtn").onclick = function(){
-  showData();
+  loadData();
   document.getElementById("modal").style.display = "flex";
 };
 
-function showData(){
+// Load data Firestore
+async function loadData(){
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
+  data = [];
   let total = 0;
+
+  const snapshot = await db.collection("pembelian").orderBy("time","desc").get();
+  snapshot.forEach(doc => {
+    data.push({ id: doc.id, ...doc.data() });
+  });
 
   data.forEach(item => {
     total += item.amount;
-
     tbody.innerHTML += `
       <tr>
         <td>${item.description}</td>
@@ -193,7 +216,7 @@ function showData(){
         <td>${item.unit}</td>
         <td>Rp ${item.amount.toLocaleString()}</td>
         <td>${item.date}</td>
-        <td><button class="delete-btn" onclick="hapus(${item.id})">Hapus</button></td>
+        <td><button class="delete-btn" onclick="hapus('${item.id}')">Hapus</button></td>
       </tr>
     `;
   });
@@ -201,11 +224,11 @@ function showData(){
   document.getElementById("totalBelanja").textContent = total.toLocaleString();
 }
 
-function hapus(id){
+// Hapus Data Firestore
+async function hapus(id){
   if(confirm("Hapus data ini?")){
-    data = data.filter(item => item.id !== id);
-    localStorage.setItem("pembelian", JSON.stringify(data));
-    showData(); 
+    await db.collection("pembelian").doc(id).delete();
+    loadData();
   }
 }
 
