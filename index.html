@@ -63,10 +63,7 @@ th { background:#007bff; color:white; }
   margin-top:10px; font-size:16px; font-weight:bold; text-align:right;
 }
 .filter-input {
-  width:100%;
-  font-size:12px;
-  padding:3px;
-  margin-top:3px;
+  width:100%; font-size:12px; padding:3px; margin-top:3px;
 }
 </style>
 </head>
@@ -149,7 +146,7 @@ th { background:#007bff; color:white; }
   </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
 <script>
@@ -168,12 +165,14 @@ const db = firebase.firestore();
 <script>
 let data = [];
 
-// Auto hitung
+// Auto hitung total
 pricePerUnit.addEventListener("input", autoHitung)
 quantity.addEventListener("input", autoHitung)
-function autoHitung(){ amount.value = (parseFloat(quantity.value)||0) * (parseFloat(pricePerUnit.value)||0); }
+function autoHitung(){
+  amount.value = (parseFloat(quantity.value)||0) * (parseFloat(pricePerUnit.value)||0);
+}
 
-// Simpan
+// ✅ Simpan + auto tampil popup
 saveBtn.onclick = async ()=>{
   const item = {
     description: description.value.trim(),
@@ -184,15 +183,23 @@ saveBtn.onclick = async ()=>{
     date: date.value || new Date().toISOString().split("T")[0],
     time: Date.now()
   };
-  if(!item.description || !item.amount){ alert("Isi data!"); return; }
+
+  if(!item.description || !item.amount){
+    alert("Isi data!");
+    return;
+  }
+
   await db.collection("pembelian").add(item);
   resetForm();
+
+  await loadData();
+  modal.style.display = "flex"; // ✅ auto buka popup
 };
 
-// Show modal
+// tombol tampilkan data manual
 toggleBtn.onclick = ()=>{ loadData(); modal.style.display="flex"; };
 
-// Load + Filter
+// ambil data dari Firebase
 async function loadData(){
   const snapshot = await db.collection("pembelian").orderBy("time","desc").get();
   data = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
@@ -204,9 +211,9 @@ function renderTable(){
   tbody.innerHTML = "";
   let total = 0;
 
-  // filter
   const start = filterStart.value;
   const end = filterEnd.value;
+
   const filtered = data.filter(x=>{
     return (!start || x.date>=start) && (!end || x.date<=end);
   });
@@ -227,16 +234,26 @@ function renderTable(){
   totalBelanja.textContent = total.toLocaleString();
 }
 
-// on change filter
 filterStart.onchange = renderTable;
 filterEnd.onchange = renderTable;
 
-// Hapus
-async function hapus(id){ if(confirm("Hapus data?")){ await db.collection("pembelian").doc(id).delete(); loadData(); } }
+async function hapus(id){
+  if(confirm("Hapus data?")){
+    await db.collection("pembelian").doc(id).delete();
+    loadData();
+  }
+}
 
 function closeModal(){ modal.style.display="none"; }
 
-function resetForm(){ description.value=""; quantity.value=1; pricePerUnit.value=""; amount.value=""; date.value=""; unit.value="pcs"; }
+function resetForm(){
+  description.value="";
+  quantity.value=1;
+  pricePerUnit.value="";
+  amount.value="";
+  date.value="";
+  unit.value="pcs";
+}
 </script>
 
 </body>
