@@ -166,7 +166,19 @@ const db = firebase.firestore();
 <script>
 let data = [];
 const modal = document.getElementById("modal");
-
+const saveBtn = document.getElementById("saveBtn");
+const toggleBtn = document.getElementById("toggleBtn");
+const description = document.getElementById("description");
+const quantity = document.getElementById("quantity");
+const unit = document.getElementById("unit");
+const pricePerUnit = document.getElementById("pricePerUnit");
+const amount = document.getElementById("amount");
+const date = document.getElementById("date");
+const tableBody = document.getElementById("tableBody");
+const filterStart = document.getElementById("filterStart");
+const filterEnd = document.getElementById("filterEnd");
+const totalBelanja = document.getElementById("totalBelanja");
+  
 // Auto hitung total
 pricePerUnit.addEventListener("input", autoHitung)
 quantity.addEventListener("input", autoHitung)
