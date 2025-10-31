@@ -5,15 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catatan Pembelian</title>
 
-<!-- jsPDF & autotable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
 <style>
 *{box-sizing:border-box;}
 body {
   font-family: 'Segoe UI', sans-serif;
-  margin: 0; padding: 20px;
+  margin: 0; 
+  padding: 20px;
   background: #f2f7ff;
 }
 .container {
@@ -31,19 +28,25 @@ input, select {
 button {
   width:100%; padding:12px; font-size:16px;
   background:#007bff; border:none; border-radius:8px; color:#fff;
-  cursor:pointer; font-weight:600; margin-top:8px;
+  cursor:pointer; font-weight:600;
 }
 button:hover { background:#0069d9; }
 
-.list { margin-top:20px; }
+.list {
+  margin-top:20px;
+}
 .item {
-  background:#fff; padding:12px; margin-bottom:10px;
-  border-radius:8px; border-left:5px solid #007bff;
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border-left:5px solid #007bff;
 }
 .item-title { font-weight:700; font-size:16px; }
 .item-sub { font-size:14px; color:#555; margin-top:3px; }
 .item-amt { font-size:16px; font-weight:600; margin-top:3px; }
 </style>
+
 </head>
 <body>
 
@@ -52,7 +55,7 @@ button:hover { background:#0069d9; }
 
   <div class="form-group">
     <label>Pembelian</label>
-    <input type="text" id="description" placeholder="Contoh: Beras">
+    <input type="text" id="description" placeholder="Contoh: Beras" required>
   </div>
 
   <div style="display:flex; gap:10px;">
@@ -90,95 +93,71 @@ button:hover { background:#0069d9; }
   </div>
 
   <button id="saveBtn">Simpan</button>
-  <button id="exportPDF" style="background:#28a745;">Export PDF</button>
 
   <div class="list" id="list"></div>
 </div>
 
 <script>
+// Load data
 let data = JSON.parse(localStorage.getItem("pembelian") || "[]");
 render();
 
-// Auto hitung
-document.getElementById("pricePerUnit").addEventListener("input", auto)
-document.getElementById("quantity").addEventListener("input", auto)
-function auto(){
-  amount.value = (parseFloat(quantity.value||0) * parseFloat(pricePerUnit.value||0)) || "";
+// Hitung otomatis nominal jika harga+jumlah diisi
+document.getElementById("pricePerUnit").addEventListener("input", autoHitung)
+document.getElementById("quantity").addEventListener("input", autoHitung)
+function autoHitung(){
+  const qty = parseFloat(quantity.value)||0;
+  const price = parseFloat(pricePerUnit.value)||0;
+  amount.value = qty * price;
 }
 
-document.getElementById("saveBtn").onclick = () => {
-  const description = descriptionField.value.trim();
-  const qty = parseFloat(quantity.value);
-  const unit = unitField.value;
-  const price = parseFloat(pricePerUnit.value);
-  const amt = parseFloat(amount.value);
-  const dateVal = date.value || new Date().toISOString().split("T")[0];
+// Simpan data
+document.getElementById("saveBtn").onclick = function(){
+  const description = document.getElementById("description").value.trim();
+  const quantity = parseFloat(document.getElementById("quantity").value);
+  const unit = document.getElementById("unit").value;
+  const pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value);
+  const amount = parseFloat(document.getElementById("amount").value);
+  const date = document.getElementById("date").value || new Date().toISOString().split("T")[0];
 
-  if (!description || !qty || !amt){
+  if (!description || !quantity || !amount){
     alert("Silakan isi semua data");
     return;
   }
 
-  data.push({id:Date.now(), description, qty, unit, price, amt, date:dateVal});
+  const newData = { id: Date.now(), description, quantity, unit, pricePerUnit, amount, date };
+  data.push(newData);
   localStorage.setItem("pembelian", JSON.stringify(data));
-  render(); reset();
+
+  render();
+  resetForm();
 };
 
-// PDF EXPORT
-document.getElementById("exportPDF").onclick = () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  doc.text("Laporan Pembelian", 14, 10);
-
-  const rows = data.map(i => [
-    i.description,
-    `${i.qty} ${i.unit}`,
-    `Rp ${i.price.toLocaleString()}`,
-    `Rp ${i.amt.toLocaleString()}`,
-    i.date
-  ]);
-
-  doc.autoTable({
-    startY: 15,
-    head: [["Pembelian", "Jumlah", "Harga/Unit", "Nominal", "Tanggal"]],
-    body: rows
-  });
-
-  doc.save("laporan_pembelian.pdf");
-};
-
-// Render list
+// Tampilkan list
 function render(){
   list.innerHTML = "";
-  data.forEach(i=>{
-    const d=document.createElement("div");
-    d.className="item";
-    d.innerHTML=`
-      <div class="item-title">${i.description}</div>
-      <div class="item-sub">${i.qty} ${i.unit} • ${i.date}</div>
-      <div class="item-amt">Rp ${i.amt.toLocaleString()}</div>
+  data.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="item-title">${item.description}</div>
+      <div class="item-sub">${item.quantity} ${item.unit} • ${item.date}</div>
+      <div class="item-amt">Rp ${item.amount.toLocaleString()}</div>
     `;
-    list.appendChild(d);
+    list.appendChild(div);
   });
 }
 
-// Reset
-const descriptionField=document.getElementById("description"),
-      quantityField=document.getElementById("quantity"),
-      unitField=document.getElementById("unit"),
-      pricePerUnitField=document.getElementById("pricePerUnit"),
-      amountField=document.getElementById("amount"),
-      dateField=document.getElementById("date");
-
-function reset(){
-  descriptionField.value="";
-  quantityField.value=1;
-  unitField.value="pcs";
-  pricePerUnitField.value="";
-  amountField.value="";
-  dateField.value="";
+// Reset form
+function resetForm(){
+  description.value="";
+  quantity.value=1;
+  pricePerUnit.value="";
+  amount.value="";
+  date.value="";
+  unit.value="pcs";
 }
 </script>
+
 </body>
 </html>
