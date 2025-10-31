@@ -29,11 +29,16 @@ button {
   width:100%; padding:12px; font-size:16px;
   background:#007bff; border:none; border-radius:8px; color:#fff;
   cursor:pointer; font-weight:600;
+  margin-bottom:8px;
 }
 button:hover { background:#0069d9; }
 
+#toggleBtn { background:#28a745; }
+#toggleBtn:hover { background:#218838; }
+
 .list {
   margin-top:20px;
+  display: none; /* awalnya tersembunyi */
 }
 .item {
   background:#fff;
@@ -93,6 +98,7 @@ button:hover { background:#0069d9; }
   </div>
 
   <button id="saveBtn">Simpan</button>
+  <button id="toggleBtn">Tampilkan Data</button>
 
   <div class="list" id="list"></div>
 </div>
@@ -131,6 +137,19 @@ document.getElementById("saveBtn").onclick = function(){
 
   render();
   resetForm();
+};
+
+// Toggle tampilan data
+document.getElementById("toggleBtn").onclick = function(){
+  const list = document.getElementById("list");
+
+  if(list.style.display === "none"){
+    list.style.display = "block";
+    this.textContent = "Sembunyikan Data";
+  } else {
+    list.style.display = "none";
+    this.textContent = "Tampilkan Data";
+  }
 };
 
 // Tampilkan list
