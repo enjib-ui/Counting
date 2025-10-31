@@ -4,194 +4,179 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catatan Pembelian</title>
+
 <style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #f4f4f4;
-  }
+*{box-sizing:border-box;}
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0; 
+  padding: 20px;
+  background: #f2f7ff;
+}
+.container {
+  max-width: 480px; margin: auto; background: #fff; padding: 20px;
+  border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+h2 { text-align:center; margin-top:0; }
 
-  .container {
-    max-width: 400px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
+.form-group { margin-bottom:12px; }
+label { font-size:14px; font-weight:600; display:block; margin-bottom:5px; }
+input, select {
+  width:100%; padding:10px; border:1px solid #ccc;
+  border-radius:6px; font-size:15px;
+}
+button {
+  width:100%; padding:12px; font-size:16px;
+  background:#007bff; border:none; border-radius:8px; color:#fff;
+  cursor:pointer; font-weight:600;
+  margin-bottom:8px;
+}
+button:hover { background:#0069d9; }
 
-  input, select, button {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-  }
+#toggleBtn { background:#28a745; }
+#toggleBtn:hover { background:#218838; }
 
-  button {
-    cursor: pointer;
-    background: #007bff;
-    color: #fff;
-    border: none;
-  }
-
-  button:hover {
-    background: #0056b3;
-  }
-
-  .btn-secondary {
-    background: #28a745;
-  }
-  .btn-secondary:hover { background: #1d7a33; }
-
-  .btn-warning {
-    background: #ff9800;
-  }
-  .btn-warning:hover { background: #e68900; }
-
-  /* Popup Style */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-content {
-    background: #fff;
-    width: 90%;
-    max-width: 600px;
-    padding: 20px;
-    border-radius: 10px;
-    position: relative;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-
-  table, th, td {
-    border: 1px solid #999;
-  }
-
-  th, td {
-    padding: 8px;
-    text-align: center;
-  }
-
-  .close {
-    position: absolute;
-    top: 10px; right: 15px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-  }
-
+.list {
+  margin-top:20px;
+  display: none; /* awalnya tersembunyi */
+}
+.item {
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border-left:5px solid #007bff;
+}
+.item-title { font-weight:700; font-size:16px; }
+.item-sub { font-size:14px; color:#555; margin-top:3px; }
+.item-amt { font-size:16px; font-weight:600; margin-top:3px; }
 </style>
+
 </head>
 <body>
 
 <div class="container">
-  <h2>Catatan Pembelian Barang</h2>
+  <h2>Catatan Pembelian</h2>
 
-  <label>Pembelian</label>
-  <input type="text" id="menu">
-
-  <label>Jumlah (pcs)</label>
-  <input type="number" id="jumlah">
-
-  <label>Nominal (Rp)</label>
-  <input type="number" id="nominal">
-
-  <button onclick="simpanData()">Simpan</button>
-  <button class="btn-secondary" onclick="showData()">Tampilkan Data</button>
-  <button class="btn-warning" onclick="exportPDF()">Export PDF</button>
-</div>
-
-<!-- Modal Popup -->
-<div id="popup" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closePopup()">&times;</span>
-    <h3>Data Pembelian</h3>
-    <table id="dataTable">
-      <thead>
-        <tr>
-          <th>Pembelian</th>
-          <th>Jumlah</th>
-          <th>Nominal (Rp)</th>
-        </tr>
-      </thead>
-      <tbody id="tabelBody"></tbody>
-    </table>
+  <div class="form-group">
+    <label>Pembelian</label>
+    <input type="text" id="description" placeholder="Contoh: Beras" required>
   </div>
-</div>
 
-<!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/jspdf-autotable"></script>
+  <div style="display:flex; gap:10px;">
+    <div class="form-group" style="flex:1;">
+      <label>Jumlah</label>
+      <input type="number" id="quantity" placeholder="0" min="1" value="1">
+    </div>
+
+    <div class="form-group" style="flex:1;">
+      <label>Satuan</label>
+      <select id="unit">
+        <option value="pcs">pcs</option>
+        <option value="kg">kg</option>
+        <option value="liter">liter</option>
+        <option value="pack">pack</option>
+        <option value="box">box</option>
+        <option value="unit">unit</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Harga per Unit (Rp)</label>
+    <input type="number" id="pricePerUnit" placeholder="Contoh: 5000" min="0">
+  </div>
+
+  <div class="form-group">
+    <label>Nominal Total (Rp)</label>
+    <input type="number" id="amount" placeholder="0" min="0">
+  </div>
+
+  <div class="form-group">
+    <label>Tanggal</label>
+    <input type="date" id="date">
+  </div>
+
+  <button id="saveBtn">Simpan</button>
+  <button id="toggleBtn">Tampilkan Data</button>
+
+  <div class="list" id="list"></div>
+</div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("pembelianData") || "[]");
+// Load data
+let data = JSON.parse(localStorage.getItem("pembelian") || "[]");
+render();
 
-function simpanData() {
-  let menu = document.getElementById("menu").value;
-  let jumlah = document.getElementById("jumlah").value;
-  let nominal = document.getElementById("nominal").value;
+// Hitung otomatis nominal jika harga+jumlah diisi
+document.getElementById("pricePerUnit").addEventListener("input", autoHitung)
+document.getElementById("quantity").addEventListener("input", autoHitung)
+function autoHitung(){
+  const qty = parseFloat(quantity.value)||0;
+  const price = parseFloat(pricePerUnit.value)||0;
+  amount.value = qty * price;
+}
 
-  if(menu === "" || jumlah === "" || nominal === "") {
-    alert("Harap isi semua data!");
+// Simpan data
+document.getElementById("saveBtn").onclick = function(){
+  const description = document.getElementById("description").value.trim();
+  const quantity = parseFloat(document.getElementById("quantity").value);
+  const unit = document.getElementById("unit").value;
+  const pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value);
+  const amount = parseFloat(document.getElementById("amount").value);
+  const date = document.getElementById("date").value || new Date().toISOString().split("T")[0];
+
+  if (!description || !quantity || !amount){
+    alert("Silakan isi semua data");
     return;
   }
 
-  data.push({menu, jumlah, nominal});
-  localStorage.setItem("pembelianData", JSON.stringify(data));
+  const newData = { id: Date.now(), description, quantity, unit, pricePerUnit, amount, date };
+  data.push(newData);
+  localStorage.setItem("pembelian", JSON.stringify(data));
 
-  document.getElementById("menu").value = "";
-  document.getElementById("jumlah").value = "";
-  document.getElementById("nominal").value = "";
+  render();
+  resetForm();
+};
 
-  alert("Data berhasil disimpan!");
-}
+// Toggle tampilan data
+document.getElementById("toggleBtn").onclick = function(){
+  const list = document.getElementById("list");
 
-function showData() {
-  let tbody = document.getElementById("tabelBody");
-  tbody.innerHTML = "";
+  if(list.style.display === "none"){
+    list.style.display = "block";
+    this.textContent = "Sembunyikan Data";
+  } else {
+    list.style.display = "none";
+    this.textContent = "Tampilkan Data";
+  }
+};
 
-  data.forEach(item => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${item.menu}</td>
-        <td>${item.jumlah}</td>
-        <td>${item.nominal}</td>
-      </tr>`;
+// Tampilkan list
+function render(){
+  list.innerHTML = "";
+  data.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="item-title">${item.description}</div>
+      <div class="item-sub">${item.quantity} ${item.unit} • ${item.date}</div>
+      <div class="item-amt">Rp ${item.amount.toLocaleString()}</div>
+    `;
+    list.appendChild(div);
   });
-
-  document.getElementById("popup").style.display = "flex";
 }
 
-function closePopup() {
-  document.getElementById("popup").style.display = "none";
-}
-
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  doc.text("Data Pembelian Barang", 14, 10);
-  doc.autoTable({
-    head: [["Pembelian", "Jumlah", "Nominal (Rp)"]],
-    body: data.map(item => [item.menu, item.jumlah, item.nominal])
-  });
-
-  doc.save("pembelian.pdf");
+// Reset form
+function resetForm(){
+  description.value="";
+  quantity.value=1;
+  pricePerUnit.value="";
+  amount.value="";
+  date.value="";
+  unit.value="pcs";
 }
 </script>
+
 </body>
 </html>
