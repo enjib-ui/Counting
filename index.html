@@ -39,9 +39,9 @@ button:hover { background:#0069d9; }
   justify-content:center; align-items:center;
 }
 .modal-content {
-  background:#fff; padding:20px; width:90%; max-width:600px;
+  background:#fff; padding:20px; width:90%; max-width:650px;
   border-radius:10px; position:relative;
-  max-height:80vh; overflow-y:auto;
+  max-height:85vh; overflow-y:auto;
 }
 .close {
   position:absolute; right:12px; top:8px;
@@ -53,6 +53,17 @@ th, td {
   font-size:14px;
 }
 th { background:#007bff; color:white; }
+
+/* tombol hapus */
+.delete-btn {
+  background:#dc3545; border:none; color:white; padding:6px 10px;
+  border-radius:5px; cursor:pointer;
+}
+.delete-btn:hover { background:#b02a37; }
+
+.total-box {
+  margin-top:10px; font-size:16px; font-weight:bold; text-align:right;
+}
 </style>
 
 </head>
@@ -117,10 +128,15 @@ th { background:#007bff; color:white; }
           <th>Satuan</th>
           <th>Nominal (Rp)</th>
           <th>Tanggal</th>
+          <th>Aksi</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
+
+    <div class="total-box">
+      Total: Rp <span id="totalBelanja">0</span>
+    </div>
   </div>
 </div>
 
@@ -129,6 +145,7 @@ let data = JSON.parse(localStorage.getItem("pembelian") || "[]");
 
 document.getElementById("pricePerUnit").addEventListener("input", autoHitung)
 document.getElementById("quantity").addEventListener("input", autoHitung)
+
 function autoHitung(){
   const qty = parseFloat(quantity.value)||0;
   const price = parseFloat(pricePerUnit.value)||0;
@@ -136,21 +153,23 @@ function autoHitung(){
 }
 
 document.getElementById("saveBtn").onclick = function(){
-  const description = description.value.trim();
-  const quantity = parseFloat(quantity.value);
-  const unit = unit.value;
-  const pricePerUnit = parseFloat(pricePerUnit.value);
-  const amount = parseFloat(amount.value);
-  const date = date.value || new Date().toISOString().split("T")[0];
+  const item = {
+    id: Date.now(),
+    description: description.value.trim(),
+    quantity: parseFloat(quantity.value),
+    unit: unit.value,
+    pricePerUnit: parseFloat(pricePerUnit.value),
+    amount: parseFloat(amount.value),
+    date: date.value || new Date().toISOString().split("T")[0]
+  };
 
-  if (!description || !quantity || !amount){
+  if (!item.description || !item.quantity || !item.amount){
     alert("Silakan isi semua data");
     return;
   }
 
-  data.push({ description, quantity, unit, pricePerUnit, amount, date });
+  data.push(item);
   localStorage.setItem("pembelian", JSON.stringify(data));
-
   resetForm();
 };
 
@@ -162,8 +181,11 @@ document.getElementById("toggleBtn").onclick = function(){
 function showData(){
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
+  let total = 0;
 
   data.forEach(item => {
+    total += item.amount;
+
     tbody.innerHTML += `
       <tr>
         <td>${item.description}</td>
@@ -171,14 +193,23 @@ function showData(){
         <td>${item.unit}</td>
         <td>Rp ${item.amount.toLocaleString()}</td>
         <td>${item.date}</td>
+        <td><button class="delete-btn" onclick="hapus(${item.id})">Hapus</button></td>
       </tr>
     `;
   });
+
+  document.getElementById("totalBelanja").textContent = total.toLocaleString();
 }
 
-function closeModal(){
-  document.getElementById("modal").style.display = "none";
+function hapus(id){
+  if(confirm("Hapus data ini?")){
+    data = data.filter(item => item.id !== id);
+    localStorage.setItem("pembelian", JSON.stringify(data));
+    showData(); 
+  }
 }
+
+function closeModal(){ document.getElementById("modal").style.display = "none"; }
 
 function resetForm(){
   description.value="";
@@ -191,4 +222,5 @@ function resetForm(){
 </script>
 
 </body>
-</html>
+  </html>
+  
