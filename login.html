@@ -4,71 +4,93 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:"Poppins",sans-serif;
-    background:linear-gradient(135deg,#4f46e5,#3b82f6);
-    height:100vh;display:flex;justify-content:center;align-items:center;
-    overflow:hidden;position:relative;color:#fff;
-  }
-
-  /* Floating shapes */
-  .shape{
-    position:absolute;border-radius:50%;filter:blur(50px);opacity:0.6;
-    animation:float 8s infinite ease-in-out;
-  }
-  .shape1{width:250px;height:250px;top:-60px;left:-60px;background:#10b981;}
-  .shape2{width:200px;height:200px;bottom:-50px;right:-40px;background:#facc15;animation-delay:2s;}
-  @keyframes float{
-    0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-40px) scale(1.1);}
-  }
-
-  .card{
-    width:350px;background:#ffffff10;padding:30px;border-radius:16px;
-    backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,0.2);
-    animation:fadeDown .7s ease;
-  }
-
-  @keyframes fadeDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
-
-  h2{text-align:center;margin-bottom:20px;font-weight:600;color:#fff;}
-
-  .input-group{margin-bottom:15px;}
-  input{
-    width:100%;padding:12px;border:none;border-radius:10px;
-    background:#ffffffcc;font-size:15px;color:#000;
-    outline:none;transition:.2s;
-  }
-  input:focus{background:#fff;box-shadow:0 0 0 2px #3b82f6;}
-
-  button{
-    width:100%;padding:12px;border:none;border-radius:10px;
-    background:#4f46e5;color:#fff;font-weight:600;font-size:15px;
-    cursor:pointer;transition:.25s;box-shadow:0 4px 12px rgba(0,0,0,0.2);
-  }
-  button:hover{background:#4338ca;transform:translateY(-2px);}
-
-  .error{margin-top:8px;font-size:13px;text-align:center;color:#ffb4b4;display:none;}
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+.container {
+  position: relative;
+  width: 350px;
+  padding: 40px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: slideUp 0.7s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  font-size: 14px;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  background: #059669;
+  transform: scale(1.02);
+}
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 15px;
+}
+.floating-ball {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  animation: float 6s infinite ease-in-out;
+}
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+  100% { transform: translateY(0); }
+}
+.ball1 { width: 90px; height: 90px; top: -20px; left: -20px; }
+.ball2 { width: 120px; height: 120px; bottom: -30px; right: -30px; animation-delay: 1s; }
+.error {
+  color: #ff4d6d;
+  font-size: 13px;
+  margin-bottom: 5px;
+  text-align: center;
+}
 </style>
 </head>
 <body>
-<div class="shape shape1"></div>
-<div class="shape shape2"></div>
-
-<div class="card">
-  <h2>Masuk</h2>
-  <div class="input-group">
-    <input type="email" id="email" placeholder="Email" autocomplete="on">
-  </div>
-  <div class="input-group">
-    <input type="password" id="password" placeholder="Password" autocomplete="on">
-  </div>
-  <button onclick="login()">Login</button>
-  <div id="error" class="error">Email atau password salah!</div>
+<div class="floating-ball ball1"></div>
+<div class="floating-ball ball2"></div>
+<div class="container">
+  <div class="title">Masuk</div>
+  <div id="errorMsg" class="error"></div>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -78,23 +100,28 @@ const firebaseConfig = {
   apiKey: "AIzaSyBMh_kw-d_YPteiDEMoKhb9WNZHqVljgRs",
   authDomain: "counting-8ba9d.firebaseapp.com",
   projectId: "counting-8ba9d",
-  storageBucket: "counting-8ba9d.firebasestorage.app",
+  storageBucket: "counting-8ba9d.appspot.com",
   messagingSenderId: "1023489535017",
   appId: "1:1023489535017:web:6083691f9e7cd367a50038"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-function login(){
-  const email=document.getElementById("email").value;
-  const pass=document.getElementById("password").value;
-  const err=document.getElementById("error");
-  err.style.display="none";
+const loginBtn = document.getElementById("loginBtn");
+const errorMsg = document.getElementById("errorMsg");
 
-  auth.signInWithEmailAndPassword(email,pass)
-    .then(()=>{ window.location.href="index.html"; })
-    .catch(()=>{ err.style.display="block"; });
-}
+loginBtn.onclick = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  errorMsg.textContent = "";
+
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    window.location.href = "index.html";
+  } catch (error) {
+    errorMsg.textContent = "Login gagal! Periksa email & password";
+  }
+};
 </script>
 </body>
-</html>
+</html
