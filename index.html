@@ -31,6 +31,27 @@ button:hover { background:#0069d9; }
 #toggleBtn { background:#28a745; }
 #toggleBtn:hover { background:#218838; }
 
+.logout-btn {
+  background:#ff4d4d;
+  border:none;
+  padding:8px 14px;
+  font-size:14px;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  display:inline-block;
+  width:auto;
+  height:auto;
+  white-space:nowrap;
+}
+.logout-btn:hover {
+  background:#d63c3c;
+}
+
 /* POPUP */
 .modal {
   display:none; position:fixed; top:0; left:0;
@@ -69,23 +90,7 @@ th { background:#007bff; color:white; }
 </head>
 
 <body>
-<button onclick="logout()" style="
-  background:#ff4d4d;
-  border:none;
-  padding:8px 14px;
-  font-size:14px;
-  color:white;
-  border-radius:6px;
-  cursor:pointer;
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 9999;
-  display:inline-block;
-  width:auto;
-  height:auto;
-  white-space:nowrap;
-">Logout</button>
+<button class="logout-btn" onclick="logout()">Logout</button>
 
 <div class="container">
   <h2>Catatan Pembelian</h2>
