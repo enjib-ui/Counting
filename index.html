@@ -137,6 +137,51 @@ th { background:#007bff; color:white; }
   <button id="saveBtn">Simpan</button>
   <button id="toggleBtn">Tampilkan Data</button>
 </div>
+  <hr style="margin:25px 0;">
+
+<h3 style="text-align:center; margin-top:0;">Catatan Pembelian 2</h3>
+
+<div class="form-group">
+  <label>Pembelian</label>
+  <input type="text" id="description2" placeholder="Contoh: Gula">
+</div>
+
+<div style="display:flex; gap:10px;">
+  <div class="form-group" style="flex:1;">
+    <label>Jumlah</label>
+    <input type="number" id="quantity2" placeholder="0" min="1" value="1">
+  </div>
+
+  <div class="form-group" style="flex:1;">
+    <label>Satuan</label>
+    <select id="unit2">
+      <option value="pcs">pcs</option>
+      <option value="kg">kg</option>
+      <option value="liter">liter</option>
+      <option value="pack">pack</option>
+      <option value="box">box</option>
+      <option value="unit">botol</option>
+    </select>
+  </div>
+</div>
+
+<div class="form-group">
+  <label>Harga per Unit (Rp)</label>
+  <input type="number" id="pricePerUnit2" placeholder="Contoh: 5000">
+</div>
+
+<div class="form-group">
+  <label>Nominal Total (Rp)</label>
+  <input type="number" id="amount2" placeholder="0">
+</div>
+
+<div class="form-group">
+  <label>Tanggal</label>
+  <input type="date" id="date2">
+</div>
+
+<button id="saveBtn2">Simpan 2</button>
+<button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data 2</button>
 
 <!-- POPUP -->
 <div id="modal" class="modal">
@@ -176,6 +221,32 @@ th { background:#007bff; color:white; }
 
     <div class="total-box">
       Total: Rp <span id="totalBelanja">0</span>
+    </div>
+  </div>
+</div>
+<!-- POPUP KE-2 -->
+<div id="modal2" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal2()">&times;</span>
+    <h3 style="text-align:center;margin:0;">Data Pembelian 2</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Pembelian</th>
+          <th>Jumlah</th>
+          <th>Satuan</th>
+          <th>Harga/Unit</th>
+          <th>Nominal</th>
+          <th>Tanggal</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody2"></tbody>
+    </table>
+
+    <div class="total-box">
+      Total: Rp <span id="totalBelanja2">0</span>
     </div>
   </div>
 </div>
@@ -348,7 +419,109 @@ function resetForm(){
   firebase.auth().signOut().then(() => {
     window.location.href = "login.html"; // arahkan ke halaman login
   });
-                                      }
+   // ---------------------------
+// FORM 2 (SAMA PERSIS VERSI 1)
+// ---------------------------
+let data2 = [];
+
+const modal2 = document.getElementById("modal2");
+const saveBtn2 = document.getElementById("saveBtn2");
+const toggleBtn2 = document.getElementById("toggleBtn2");
+
+const description2 = document.getElementById("description2");
+const quantity2 = document.getElementById("quantity2");
+const unit2 = document.getElementById("unit2");
+const pricePerUnit2 = document.getElementById("pricePerUnit2");
+const amount2 = document.getElementById("amount2");
+const date2 = document.getElementById("date2");
+const tableBody2 = document.getElementById("tableBody2");
+const totalBelanja2 = document.getElementById("totalBelanja2");
+
+// AUTO HITUNG
+pricePerUnit2.addEventListener("input", autoHitung2);
+quantity2.addEventListener("input", autoHitung2);
+
+function autoHitung2(){
+  amount2.value = (parseFloat(quantity2.value)||0) * (parseFloat(pricePerUnit2.value)||0);
+}
+
+// SIMPAN DATA
+saveBtn2.onclick = async ()=>{
+  const item = {
+    description: description2.value.trim(),
+    quantity: parseFloat(quantity2.value),
+    unit: unit2.value,
+    pricePerUnit: parseFloat(pricePerUnit2.value),
+    amount: parseFloat(amount2.value),
+    date: date2.value || new Date().toISOString().split("T")[0],
+    time: Date.now()
+  };
+
+  if(!item.description || !item.amount){
+    alert("Isi data!");
+    return;
+  }
+
+  await db.collection("pembelian2").add(item);
+  resetForm2();
+
+  await loadData2();
+  modal2.style.display = "flex";
+};
+
+// TAMPILKAN DATA 2
+toggleBtn2.onclick = ()=>{
+  loadData2();
+  modal2.style.display = "flex";
+};
+
+// LOAD DATA 2
+async function loadData2(){
+  const snapshot = await db.collection("pembelian2").orderBy("time","desc").get();
+  data2 = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  renderTable2();
+}
+
+function renderTable2(){
+  tableBody2.innerHTML="";
+  let total = 0;
+
+  data2.forEach(item=>{
+    total += item.amount;
+
+    tableBody2.innerHTML += `
+      <tr>
+        <td>${item.description}</td>
+        <td>${item.quantity}</td>
+        <td>${item.unit}</td>
+        <td>Rp ${item.pricePerUnit.toLocaleString()}</td>
+        <td>Rp ${item.amount.toLocaleString()}</td>
+        <td>${item.date}</td>
+        <td><button class="delete-btn" onclick="hapus2('${item.id}')">Hapus</button></td>
+      </tr>
+    `;
+  });
+
+  totalBelanja2.textContent = total.toLocaleString();
+}
+
+async function hapus2(id){
+  if(confirm("Hapus data?")){
+    await db.collection("pembelian2").doc(id).delete();
+    loadData2();
+  }
+}
+
+function closeModal2(){ modal2.style.display="none"; }
+
+function resetForm2(){
+  description2.value="";
+  quantity2.value=1;
+  pricePerUnit2.value="";
+  amount2.value="";
+  date2.value="";
+  unit2.value="pcs";
+}                                   }
   
 </script>
 
