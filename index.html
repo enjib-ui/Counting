@@ -229,6 +229,17 @@ th { background:#007bff; color:white; }
   <div class="modal-content">
     <span class="close" onclick="closeModal2()">&times;</span>
     <h3 style="text-align:center;margin:0;">Data Pembelian 2</h3>
+    <div style="text-align:right; margin-top:10px;">
+  <button onclick="exportPDF2()" style="
+    background:#dc3545;
+    color:#fff;
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+  ">Export PDF</button>
+</div>
 
     <table>
       <thead>
@@ -238,7 +249,11 @@ th { background:#007bff; color:white; }
           <th>Satuan</th>
           <th>Harga/Unit</th>
           <th>Nominal</th>
-          <th>Tanggal</th>
+          <th>
+  Tanggal
+  <input type="date" id="filterStart2" class="filter-input">
+  <input type="date" id="filterEnd2" class="filter-input">
+</th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -436,6 +451,9 @@ const amount2 = document.getElementById("amount2");
 const date2 = document.getElementById("date2");
 const tableBody2 = document.getElementById("tableBody2");
 const totalBelanja2 = document.getElementById("totalBelanja2");
+const filterStart2 = document.getElementById("filterStart2");
+const filterEnd2 = document.getElementById("filterEnd2");
+
 
 // AUTO HITUNG
 pricePerUnit2.addEventListener("input", autoHitung2);
@@ -486,7 +504,15 @@ function renderTable2(){
   tableBody2.innerHTML="";
   let total = 0;
 
-  data2.forEach(item=>{
+  const start = filterStart2.value;
+  const end = filterEnd2.value;
+
+  const filtered = data2.filter(item=>{
+    return (!start || item.date >= start) &&
+           (!end || item.date <= end);
+  });
+
+  filtered.forEach(item=>{
     total += item.amount;
 
     tableBody2.innerHTML += `
@@ -504,6 +530,9 @@ function renderTable2(){
 
   totalBelanja2.textContent = total.toLocaleString();
 }
+filterStart2.onchange = renderTable2;
+filterEnd2.onchange = renderTable2;
+
 
 async function hapus2(id){
   if(confirm("Hapus data?")){
@@ -521,7 +550,39 @@ function resetForm2(){
   amount2.value="";
   date2.value="";
   unit2.value="pcs";
-}                                   }
+}  
+  }
+  async function exportPDF2() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const rows = [];
+  const tbody = document.querySelectorAll("#tableBody2 tr");
+
+  tbody.forEach(tr => {
+    const cols = [...tr.children].map(td => td.innerText);
+    cols.pop(); // hapus kolom aksi
+    rows.push(cols);
+  });
+
+  doc.text("Laporan Pembelian 2", 14, 10);
+
+  const start = filterStart2.value || "-";
+  const end = filterEnd2.value || "-";
+  doc.text(`Periode: ${start} s/d ${end}`, 14, 18);
+
+  doc.autoTable({
+    head: [["Pembelian","Qty","Satuan","Harga/Unit","Nominal","Tanggal"]],
+    body: rows,
+    startY: 26
+  });
+
+  const total = document.getElementById("totalBelanja2").innerText;
+  doc.text(`Total Belanja: Rp ${total}`, 14, doc.lastAutoTable.finalY + 10);
+
+  doc.save(`laporan-pembelian2-${Date.now()}.pdf`);
+}
+
   
 </script>
 
