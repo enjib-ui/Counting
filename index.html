@@ -635,9 +635,12 @@ function resetForm2(){
 
   doc.save(`laporan-pembelian2-${Date.now()}.pdf`);
 }
-<script>
+</script>
+  <script>
 let currentSlide = 0;
+
 const slider = document.getElementById("slider");
+const sliderWrapper = document.querySelector(".slider-wrapper");
 
 function updateSlide(){
   slider.style.transform = `translateX(-${currentSlide * 100}%)`;
@@ -653,20 +656,30 @@ function prevSlide(){
   updateSlide();
 }
 
-/* SWIPE MOBILE */
+/* ✅ SWIPE DIPASANG DI .slider-wrapper */
 let startX = 0;
+let startY = 0;
 
-slider.addEventListener("touchstart", e=>{
+sliderWrapper.addEventListener("touchstart", e => {
   startX = e.touches[0].clientX;
-});
+  startY = e.touches[0].clientY;
+}, { passive: true });
 
-slider.addEventListener("touchend", e=>{
-  let endX = e.changedTouches[0].clientX;
-  if(startX - endX > 50) nextSlide();
-  if(endX - startX > 50) prevSlide();
-});
+sliderWrapper.addEventListener("touchend", e => {
+  const endX = e.changedTouches[0].clientX;
+  const endY = e.changedTouches[0].clientY;
+
+  const diffX = startX - endX;
+  const diffY = startY - endY;
+
+  // ✅ hanya swipe horizontal
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
+    if (diffX > 0) nextSlide();
+    else prevSlide();
+  }
+}, { passive: true });
 </script>
-</script>
+
 
 </body>
 </html>
