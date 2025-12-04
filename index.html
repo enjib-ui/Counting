@@ -31,7 +31,7 @@ body {
 .slide {
   min-width: 100%;
 }
-.slider {
+.slider-wrapper {
   touch-action: pan-y;
 }
 
@@ -647,7 +647,7 @@ function updateSlide(){
 }
 
 function nextSlide(){
-  currentSlide = Math.min(currentSlide + 1, 1);
+  currentSlide = Math.min(currentSlide + 1, totalSlide - 1);
   updateSlide();
 }
 
