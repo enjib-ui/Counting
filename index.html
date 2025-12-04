@@ -116,15 +116,34 @@ th { background:#007bff; color:white; }
 .filter-input {
   width:100%; font-size:12px; padding:3px; margin-top:3px;
 }
+  /* DOT SLIDER */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.dot.active {
+  background: #007bff;
+  transform: scale(1.4);
+}
+
 </style>
 </head>
 
 <body>
 <button class="logout-btn" onclick="logout()">Logout</button>
 <div class="slider-wrapper">
-
-  <button class="nav-btn left" onclick="prevSlide()">‹</button>
-  <button class="nav-btn right" onclick="nextSlide()">›</button>
 
   <div class="slider" id="slider">
 
@@ -223,6 +242,8 @@ th { background:#007bff; color:white; }
   <button id="saveBtn2">Simpan</button>
   <button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data</button>
 </div>
+</div>
+    <div class="dots" id="dots"></div>
 </div>
 
   </div>
@@ -634,23 +655,38 @@ let currentSlide = 0;
 
 const slider = document.getElementById("slider");
 const sliderWrapper = document.querySelector(".slider-wrapper");
-const totalSlide = document.querySelectorAll(".slide").length;
+const slides = document.querySelectorAll(".slide");
+const dotsContainer = document.getElementById("dots");
+const totalSlide = slides.length;
+
+// === BUAT DOT OTOMATIS ===
+function createDots(){
+  dotsContainer.innerHTML = "";
+  slides.forEach((_, i) => {
+    const dot = document.createElement("div");
+    dot.className = "dot" + (i === 0 ? " active" : "");
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+  });
+}
+
+function updateDots(){
+  document.querySelectorAll(".dot").forEach((dot, i) => {
+    dot.classList.toggle("active", i === currentSlide);
+  });
+}
+
+function goToSlide(index){
+  currentSlide = index;
+  updateSlide();
+}
 
 function updateSlide(){
   slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+  updateDots();
 }
 
-function nextSlide(){
-  currentSlide = Math.min(currentSlide + 1, totalSlide - 1);
-  updateSlide();
-}
-
-function prevSlide(){
-  currentSlide = Math.max(currentSlide - 1, 0);
-  updateSlide();
-}
-
-/* ✅ SWIPE DI .slider-wrapper */
+// === SWIPE ===
 let startX = 0;
 let startY = 0;
 
@@ -666,10 +702,16 @@ sliderWrapper.addEventListener("touchend", e => {
   const diffX = startX - endX;
   const diffY = startY - endY;
 
-  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
-    diffX > 0 ? nextSlide() : prevSlide();
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60){
+    if (diffX > 0 && currentSlide < totalSlide - 1) currentSlide++;
+    if (diffX < 0 && currentSlide > 0) currentSlide--;
+    updateSlide();
   }
 }, { passive: true });
+
+// INIT
+createDots();
+updateSlide();
 </script>
 
 
