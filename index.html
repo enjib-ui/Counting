@@ -139,49 +139,51 @@ th { background:#007bff; color:white; }
 </div>
   <hr style="margin:25px 0;">
 
-<h3 style="text-align:center; margin-top:0;">Catatan Pembelian Bulanan</h3>
+<div class="container">
+  <h2>Catatan Pembelian Bulanan</h2>
 
-<div class="form-group">
-  <label>Pembelian</label>
-  <input type="text" id="description2" placeholder="Contoh: Gula">
-</div>
-
-<div style="display:flex; gap:10px;">
-  <div class="form-group" style="flex:1;">
-    <label>Jumlah</label>
-    <input type="number" id="quantity2" placeholder="0" min="1" value="1">
+  <div class="form-group">
+    <label>Pembelian</label>
+    <input type="text" id="description2" placeholder="Contoh: Gula">
   </div>
 
-  <div class="form-group" style="flex:1;">
-    <label>Satuan</label>
-    <select id="unit2">
-      <option value="pcs">pcs</option>
-      <option value="kg">kg</option>
-      <option value="liter">liter</option>
-      <option value="pack">pack</option>
-      <option value="box">box</option>
-      <option value="unit">botol</option>
-    </select>
+  <div style="display:flex; gap:10px;">
+    <div class="form-group" style="flex:1;">
+      <label>Jumlah</label>
+      <input type="number" id="quantity2" placeholder="0" min="1" value="1">
+    </div>
+
+    <div class="form-group" style="flex:1;">
+      <label>Satuan</label>
+      <select id="unit2">
+        <option value="pcs">pcs</option>
+        <option value="kg">kg</option>
+        <option value="liter">liter</option>
+        <option value="pack">pack</option>
+        <option value="box">box</option>
+        <option value="unit">botol</option>
+      </select>
+    </div>
   </div>
-</div>
 
-<div class="form-group">
-  <label>Harga per Unit (Rp)</label>
-  <input type="number" id="pricePerUnit2" placeholder="Contoh: 5000">
-</div>
+  <div class="form-group">
+    <label>Harga per Unit (Rp)</label>
+    <input type="number" id="pricePerUnit2" placeholder="Contoh: 5000">
+  </div>
 
-<div class="form-group">
-  <label>Nominal Total (Rp)</label>
-  <input type="number" id="amount2" placeholder="0">
-</div>
+  <div class="form-group">
+    <label>Nominal Total (Rp)</label>
+    <input type="number" id="amount2" placeholder="0">
+  </div>
 
-<div class="form-group">
-  <label>Tanggal</label>
-  <input type="date" id="date2">
-</div>
+  <div class="form-group">
+    <label>Tanggal</label>
+    <input type="date" id="date2">
+  </div>
 
-<button id="saveBtn2">Simpan 2</button>
-<button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data 2</button>
+  <button id="saveBtn2">Simpan</button>
+  <button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data</button>
+</div>
 
 <!-- POPUP -->
 <div id="modal" class="modal">
