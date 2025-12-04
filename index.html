@@ -243,6 +243,31 @@ th { background:#007bff; color:white; }
   <button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data</button>
 </div>
  </div>
+    <!-- === SLIDE 3: Catatan Gaji & Sewa === -->
+<div class="slide">
+  <div class="container">
+    <h2>Catatan Gaji & Sewa</h2>
+
+    <div class="form-group">
+      <label>Judul</label>
+      <input type="text" id="title3" placeholder="Contoh: Gaji Bulanan / Sewa Kontrakan">
+    </div>
+
+    <div class="form-group">
+      <label>Nominal (Rp)</label>
+      <input type="number" id="amount3" placeholder="0">
+    </div>
+
+    <div class="form-group">
+      <label>Tanggal</label>
+      <input type="date" id="date3">
+    </div>
+
+    <button id="saveBtn3">Simpan</button>
+    <button id="toggleBtn3" style="background:#ff9800;">Tampilkan Data</button>
+  </div>
+</div>
+
      </div>
 
   <div class="dots" id="dots"></div>
@@ -331,6 +356,48 @@ th { background:#007bff; color:white; }
     </div>
   </div>
 </div>
+  <!-- === POPUP SLIDE 3 === -->
+<div id="modal3" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal3()">&times;</span>
+    <h3 style="text-align:center;margin:0;">Data Gaji & Sewa</h3>
+
+    <div style="text-align:right; margin-top:10px;">
+      <button onclick="exportPDF3()" style="
+        background:#ff9800; 
+        color:#fff; 
+        padding:8px 12px; 
+        border:none; 
+        border-radius:6px; 
+        cursor:pointer; 
+        font-size:14px">
+        Export PDF
+      </button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Judul</th>
+          <th>Nominal</th>
+          <th>
+            Tanggal
+            <input type="date" id="filterStart3" class="filter-input">
+            <input type="date" id="filterEnd3" class="filter-input">
+          </th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+
+      <tbody id="tableBody3"></tbody>
+    </table>
+
+    <div class="total-box">
+      Total: Rp <span id="totalGaji">0</span>
+    </div>
+  </div>
+</div>
+
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -649,6 +716,139 @@ function resetForm2(){
 
   doc.save(`laporan-pembelian2-${Date.now()}.pdf`);
 }
+  // ========================================
+// SLIDE 3 - GAJI & SEWA
+// ========================================
+let data3 = [];
+
+const modal3 = document.getElementById("modal3");
+const saveBtn3 = document.getElementById("saveBtn3");
+const toggleBtn3 = document.getElementById("toggleBtn3");
+
+const title3 = document.getElementById("title3");
+const amountInput3 = document.getElementById("amount3");
+const date3 = document.getElementById("date3");
+
+const tableBody3 = document.getElementById("tableBody3");
+const totalGaji = document.getElementById("totalGaji");
+
+const filterStart3 = document.getElementById("filterStart3");
+const filterEnd3 = document.getElementById("filterEnd3");
+
+// Simpan data
+saveBtn3.onclick = async () => {
+  const item = {
+    title: title3.value.trim(),
+    amount: parseFloat(amountInput3.value),
+    date: date3.value || new Date().toISOString().split("T")[0],
+    time: Date.now()
+  };
+
+  if (!item.title || !item.amount) {
+    alert("Isi data!");
+    return;
+  }
+
+  await db.collection("gaji").add(item);
+  resetForm3();
+
+  await loadData3();
+  modal3.style.display = "flex";
+};
+
+// tampilkan data
+toggleBtn3.onclick = () => {
+  loadData3();
+  modal3.style.display = "flex";
+};
+
+// load
+async function loadData3() {
+  const snapshot = await db.collection("gaji").orderBy("time","desc").get();
+  data3 = snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
+  renderTable3();
+}
+
+function renderTable3() {
+  tableBody3.innerHTML = "";
+  let total = 0;
+
+  const start = filterStart3.value;
+  const end = filterEnd3.value;
+
+  const filtered = data3.filter(item => {
+    return (!start || item.date >= start) &&
+           (!end   || item.date <= end);
+  });
+
+  filtered.forEach(item => {
+    total += item.amount;
+
+    tableBody3.innerHTML += `
+      <tr>
+        <td>${item.title}</td>
+        <td>Rp ${item.amount.toLocaleString()}</td>
+        <td>${item.date}</td>
+        <td><button class="delete-btn" onclick="hapus3('${item.id}')">Hapus</button></td>
+      </tr>
+    `;
+  });
+
+  totalGaji.textContent = total.toLocaleString();
+}
+
+filterStart3.onchange = renderTable3;
+filterEnd3.onchange = renderTable3;
+
+async function hapus3(id) {
+  if (confirm("Hapus data?")) {
+    await db.collection("gaji").doc(id).delete();
+    loadData3();
+  }
+}
+
+function closeModal3() {
+  modal3.style.display = "none";
+}
+
+function resetForm3() {
+  title3.value = "";
+  amountInput3.value = "";
+  date3.value = "";
+}
+
+// Export PDF
+async function exportPDF3() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const rows = [];
+  const tbody = document.querySelectorAll("#tableBody3 tr");
+
+  tbody.forEach(tr => {
+    const cols = [...tr.children].map(td => td.innerText);
+    cols.pop();
+    rows.push(cols);
+  });
+
+  doc.text("Laporan Gaji & Sewa", 14, 10);
+
+  const start = filterStart3.value || "-";
+  const end = filterEnd3.value || "-";
+  doc.text(`Periode: ${start} s/d ${end}`, 14, 18);
+
+  doc.autoTable({
+    head: [["Judul","Nominal","Tanggal"]],
+    body: rows,
+    startY: 26
+  });
+
+  const total = totalGaji.innerText;
+  doc.text(`Total: Rp ${total}`, 14, doc.lastAutoTable.finalY + 10);
+
+  doc.save(`laporan-gaji-${Date.now()}.pdf`);
+}
+
 </script>
   <script>
 let currentSlide = 0;
