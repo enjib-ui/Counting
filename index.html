@@ -15,6 +15,41 @@ body {
   max-width: 480px; margin: auto; background: #fff; padding: 20px;
   border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
+/* SLIDER */
+.slider-wrapper {
+  max-width: 480px;
+  margin: auto;
+  overflow: hidden;
+  position: relative;
+}
+
+.slider {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.slide {
+  min-width: 100%;
+}
+
+/* NAV BUTTON */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background:#007bff;
+  color:white;
+  border:none;
+  font-size:18px;
+  padding:8px 12px;
+  border-radius:50%;
+  cursor:pointer;
+  z-index: 10;
+}
+
+.nav-btn.left { left: -10px; }
+.nav-btn.right { right: -10px; }
+
 h2 { text-align:center; margin-top:0; }
 .form-group { margin-bottom:12px; }
 label { font-size:14px; font-weight:600; display:block; margin-bottom:5px; }
@@ -91,8 +126,16 @@ th { background:#007bff; color:white; }
 
 <body>
 <button class="logout-btn" onclick="logout()">Logout</button>
+<div class="slider-wrapper">
 
-<div class="container">
+  <button class="nav-btn left" onclick="prevSlide()">‹</button>
+  <button class="nav-btn right" onclick="nextSlide()">›</button>
+
+  <div class="slider" id="slider">
+
+    <!-- SLIDE 1 -->
+    <div class="slide">
+      <div class="container">
   <h2>Catatan Pembelian Harian</h2>
 
   <div class="form-group">
@@ -183,6 +226,10 @@ th { background:#007bff; color:white; }
 
   <button id="saveBtn2">Simpan</button>
   <button id="toggleBtn2" style="background:#6f42c1;">Tampilkan Data</button>
+</div>
+</div>
+
+  </div>
 </div>
 
 <!-- POPUP -->
@@ -585,7 +632,36 @@ function resetForm2(){
 
   doc.save(`laporan-pembelian2-${Date.now()}.pdf`);
 }
+<script>
+let currentSlide = 0;
+const slider = document.getElementById("slider");
 
+function updateSlide(){
+  slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function nextSlide(){
+  currentSlide = Math.min(currentSlide + 1, 1);
+  updateSlide();
+}
+
+function prevSlide(){
+  currentSlide = Math.max(currentSlide - 1, 0);
+  updateSlide();
+}
+
+/* SWIPE MOBILE */
+let startX = 0;
+
+slider.addEventListener("touchstart", e=>{
+  startX = e.touches[0].clientX;
+});
+
+slider.addEventListener("touchend", e=>{
+  let endX = e.changedTouches[0].clientX;
+  if(startX - endX > 50) nextSlide();
+  if(endX - startX > 50) prevSlide();
+});
   
 </script>
 
