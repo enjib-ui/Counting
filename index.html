@@ -642,6 +642,7 @@ let currentSlide = 0;
 
 const slider = document.getElementById("slider");
 const sliderWrapper = document.querySelector(".slider-wrapper");
+const totalSlide = document.querySelectorAll(".slide").length;
 
 function updateSlide(){
   slider.style.transform = `translateX(-${currentSlide * 100}%)`;
@@ -657,7 +658,7 @@ function prevSlide(){
   updateSlide();
 }
 
-/* ✅ SWIPE DIPASANG DI .slider-wrapper */
+/* ✅ SWIPE DI .slider-wrapper */
 let startX = 0;
 let startY = 0;
 
@@ -673,10 +674,8 @@ sliderWrapper.addEventListener("touchend", e => {
   const diffX = startX - endX;
   const diffY = startY - endY;
 
-  // ✅ hanya swipe horizontal
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
-    if (diffX > 0) nextSlide();
-    else prevSlide();
+    diffX > 0 ? nextSlide() : prevSlide();
   }
 }, { passive: true });
 </script>
