@@ -31,6 +31,9 @@ body {
 .slide {
   min-width: 100%;
 }
+.slider {
+  touch-action: pan-y;
+}
 
 /* NAV BUTTON */
 .nav-btn {
@@ -180,7 +183,7 @@ th { background:#007bff; color:white; }
   <button id="saveBtn">Simpan</button>
   <button id="toggleBtn">Tampilkan Data</button>
 </div>
-  <hr style="margin:25px 0;">
+ <div class="slide">
 
 <div class="container">
   <h2>Catatan Pembelian Bulanan</h2>
@@ -662,7 +665,7 @@ slider.addEventListener("touchend", e=>{
   if(startX - endX > 50) nextSlide();
   if(endX - startX > 50) prevSlide();
 });
-  
+</script>
 </script>
 
 </body>
