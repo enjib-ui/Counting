@@ -273,6 +273,30 @@ th { background:#007bff; color:white; }
   <div class="dots" id="dots"></div>
 
 </div>
+  
+  <!-- === MODAL USAHA === -->
+<div class="container" style="margin-top:20px;">
+  <h3 style="text-align:center;margin-top:0;">Modal Usaha</h3>
+
+  <!-- tampil total modal -->
+  <div style="
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#27ae60;
+  ">
+    Modal Saat Ini: Rp <span id="totalModal">0</span>
+  </div>
+
+  <!-- input modal -->
+  <div class="form-group">
+    <label>Jumlah Modal (Rp)</label>
+    <input type="number" id="modalInput" placeholder="Contoh: 500000">
+  </div>
+
+  <button id="saveModalBtn" style="background:#27ae60;">Simpan Modal</button>
+</div>
 
 <!-- POPUP -->
 <div id="modal" class="modal">
@@ -424,6 +448,43 @@ firebase.auth().onAuthStateChanged(user => {
   }
 });
   </script>
+  <script>
+const modalInput = document.getElementById("modalInput");
+const saveModalBtn = document.getElementById("saveModalBtn");
+const totalModalEl = document.getElementById("totalModal");
+
+// Simpan modal (overwrite → cuma 1 modal aktif)
+saveModalBtn.onclick = async () => {
+  const modalNominal = parseFloat(modalInput.value);
+  if (!modalNominal) {
+    alert("Isi jumlah modal!");
+    return;
+  }
+
+  await db.collection("modal").doc("utama").set({
+    nominal: modalNominal,
+    time: Date.now()
+  });
+
+  modalInput.value = "";
+  loadModal();
+};
+
+// Ambil modal
+async function loadModal() {
+  const docSnap = await db.collection("modal").doc("utama").get();
+  if (docSnap.exists) {
+    totalModalEl.textContent =
+      docSnap.data().nominal.toLocaleString("id-ID");
+  } else {
+    totalModalEl.textContent = "0";
+  }
+}
+
+// Panggil saat halaman dibuka
+loadModal();
+</script>
+
 
 <script>
 let data = [];
