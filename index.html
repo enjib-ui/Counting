@@ -288,6 +288,16 @@ th { background:#007bff; color:white; }
   ">
     Modal Bulan Ini: Rp <span id="totalModal">0</span>
   </div>
+  <div style="
+  text-align:center;
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:15px;
+  color:#c0392b;
+">
+  Sisa Modal: Rp <span id="sisaModal">0</span>
+</div>
+
 
   <!-- pilih bulan -->
   <div class="form-group">
@@ -486,13 +496,24 @@ saveModalBtn.onclick = async () => {
 // load modal sesuai bulan
 async function loadModal(bulan = modalMonth.value) {
   const docSnap = await db.collection("modal").doc(bulan).get();
+  let modalNominal = 0;
 
   if (docSnap.exists) {
+    modalNominal = docSnap.data().nominal;
     totalModalEl.textContent =
-      docSnap.data().nominal.toLocaleString("id-ID");
+      modalNominal.toLocaleString("id-ID");
   } else {
     totalModalEl.textContent = "0";
   }
+
+  // hitung pengeluaran bulan ini
+  const pengeluaran = await hitungPengeluaranBulanan(bulan);
+
+  const sisa = modalNominal - pengeluaran;
+  sisaModalEl.textContent = sisa.toLocaleString("id-ID");
+
+  // warna otomatis
+  sisaModalEl.style.color = sisa < 0 ? "#e74c3c" : "#27ae60";
 }
 
 // saat bulan diganti → reload modal
@@ -500,6 +521,40 @@ modalMonth.onchange = () => loadModal();
 
 // load awal
 loadModal();
+</script>
+<script>
+const sisaModalEl = document.getElementById("sisaModal");
+
+// hitung total pembelian + gaji 1 bulan
+async function hitungPengeluaranBulanan(bulan){
+  let total = 0;
+
+  // Pembelian harian
+  const harian = await db.collection("pembelian").get();
+  harian.docs.forEach(d => {
+    if (d.data().date?.startsWith(bulan)) {
+      total += d.data().amount || 0;
+    }
+  });
+
+  // Pembelian bulanan
+  const bulanan = await db.collection("pembelian2").get();
+  bulanan.docs.forEach(d => {
+    if (d.data().date?.startsWith(bulan)) {
+      total += d.data().amount || 0;
+    }
+  });
+
+  // Gaji & sewa
+  const gaji = await db.collection("gaji").get();
+  gaji.docs.forEach(d => {
+    if (d.data().date?.startsWith(bulan)) {
+      total += d.data().amount || 0;
+    }
+  });
+
+  return total;
+}
 </script>
 
 <script>
